@@ -1,0 +1,42 @@
+version: '3'
+
+services:
+  php-fpm:
+    build:
+        context: ./php-fpm
+    container_name: php-devl-fpm
+    volumes:
+        - ./src:/var/www
+    restart: unless-stopped
+
+  nginx:
+    build:
+        context: ./nginx
+    container_name: php-devl-nginx
+    ports:
+        - 8120:80
+        - 8121:443
+    volumes:
+        - ./src:/var/www
+        - ./nginx/nginx.conf:/etc/nginx/nginx.conf
+        - ./nginx/sites/:/etc/nginx/sites-available
+        - ./nginx/conf.d/:/etc/nginx/conf.d
+    depends_on:
+        - php-fpm
+    restart: unless-stopped  
+
+  database:
+    build:
+      context: ./database
+    environment:
+      - MYSQL_DATABASE=mydb
+      - MYSQL_USER=user
+      - MYSQL_PASSWORD=userPassword
+      - MYSQL_ROOT_PASSWORD=password
+    ports:
+      - 3306:3306 
+    container_name: php-devl-db
+    volumes:
+      - ./database/config:/config
+      - ./database/data:/var/lib/mysql
+    restart: unless-stopped
